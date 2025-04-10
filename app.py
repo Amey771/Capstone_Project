@@ -97,11 +97,93 @@ for col in risky_flags:
     st.write(f"{col}: ", input_data.at[0, col] if col in input_data.columns else "❌ MISSING")
 
 
-# Predict
+# # Predict
+# if st.button("Predict Attrition Risk"):
+#     prediction = model.predict(input_data)[0]
+#     proba = model.predict_proba(input_data)[0][1]
+
+#     st.markdown("### 🧠 Prediction Result")
+#     st.success(f"Prediction: {'Attrition (Yes)' if prediction else 'No Attrition'}")
+#     st.info(f"Probability of Attrition: **{proba:.2%}**")
+
+
+# # Predict
+# if st.button("Predict Attrition Risk"):
+#     prediction_proba = model.predict_proba(input_data)[0][1]
+
+#     # threshold = st.slider("Custom Risk Threshold (%)", 10, 90, 35) / 100
+
+#     threshold = 30
+
+#     prediction_label = "Attrition Risk" if prediction_proba >= threshold else "No Attrition"
+
+#     st.markdown("### 🧠 Prediction Result")
+#     if prediction_label == "Attrition Risk":
+#         st.error(f"Prediction: {prediction_label}")
+#     else:
+#         st.success(f"Prediction: {prediction_label}")
+
+#     st.info(f"Probability of Attrition: **{prediction_proba:.2%}** (Threshold: {threshold*100:.0f}%)")
+
+
+st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        background-color: #2e8b57;
+        color: white;
+        border-radius: 8px;
+        padding: 0.6em 1.5em;
+        font-weight: 600;
+        font-size: 16px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+# --- Threshold & Prediction Logic ---
+ 
+# make this a slider
+# threshold = st.slider("Custom Risk Threshold (%)", 10, 90, 35) / 100
+
+threshold = 0.35  # 35%
 if st.button("Predict Attrition Risk"):
-    prediction = model.predict(input_data)[0]
-    proba = model.predict_proba(input_data)[0][1]
+    proba = model.predict_proba(input_data)[0][1]  # this is 0.0059, or 0.59%
+    percent_proba = proba * 100
+    is_at_risk = percent_proba >= threshold
 
     st.markdown("### 🧠 Prediction Result")
-    st.success(f"Prediction: {'Attrition (Yes)' if prediction else 'No Attrition'}")
-    st.info(f"Probability of Attrition: **{proba:.2%}**")
+    if is_at_risk:
+        st.error("🔴 Prediction: **Attrition Risk**")
+    else:
+        st.success("🟢 Prediction: **No Risk of Attrition**")
+
+    st.caption(f"🧮 Risk Score: **{percent_proba:.2%}** (Threshold: {threshold * 100:.1f}%)")
+
+
+
+
+
+import shap
+import matplotlib.pyplot as plt
+
+# SHAP Explainer Setup
+explainer = shap.TreeExplainer(model)
+
+# Ensure input format and type
+shap_input = input_data.astype(float)
+
+# Compute SHAP values
+shap_values = explainer.shap_values(shap_input)
+
+# Display SHAP force plot or bar chart
+st.subheader("🔎 Feature Impact (SHAP Explanation)")
+
+# Bar plot (simpler for Streamlit)
+shap.summary_plot(shap_values, shap_input, plot_type="bar", show=False)
+st.pyplot(plt.gcf())
+
+
+# # Force plot for individual prediction
+# st.set_option('deprecation.showPyplotGlobalUse', False)
+# shap.force_plot(explainer.expected_value, shap_values[0], shap_input, matplotlib=True, show=False)
+# st.pyplot()
