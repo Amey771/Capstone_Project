@@ -162,28 +162,33 @@ if st.button("Predict Attrition Risk"):
 
 
 
+# Shap
+if st.button("📊 Show SHAP Explanation"):
+    # run SHAP explainer here
+    import shap
+    import matplotlib.pyplot as plt
 
-import shap
-import matplotlib.pyplot as plt
+    # SHAP Explainer Setup
+    explainer = shap.TreeExplainer(model)
 
-# SHAP Explainer Setup
-explainer = shap.TreeExplainer(model)
+    # Ensure input format and type
+    shap_input = input_data.astype(float)
 
-# Ensure input format and type
-shap_input = input_data.astype(float)
+    with st.spinner("Analyzing feature impact..."):
+        # Compute SHAP values
+        shap_values = explainer.shap_values(shap_input)
 
-# Compute SHAP values
-shap_values = explainer.shap_values(shap_input)
+        # Display SHAP force plot or bar chart
+        st.subheader("🔎 Feature Impact (SHAP Explanation)")
 
-# Display SHAP force plot or bar chart
-st.subheader("🔎 Feature Impact (SHAP Explanation)")
-
-# Bar plot (simpler for Streamlit)
-shap.summary_plot(shap_values, shap_input, plot_type="bar", show=False)
-st.pyplot(plt.gcf())
+        # Bar plot (simpler for Streamlit)
+        shap.summary_plot(shap_values, shap_input, plot_type="bar", show=False)
+        st.pyplot(plt.gcf())
 
 
-# # Force plot for individual prediction
-# st.set_option('deprecation.showPyplotGlobalUse', False)
-# shap.force_plot(explainer.expected_value, shap_values[0], shap_input, matplotlib=True, show=False)
-# st.pyplot()
+    # # Force plot for individual prediction
+    # st.set_option('deprecation.showPyplotGlobalUse', False)
+    # shap.force_plot(explainer.expected_value, shap_values[0], shap_input, matplotlib=True, show=False)
+    # st.pyplot()
+
+
