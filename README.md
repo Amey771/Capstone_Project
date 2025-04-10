@@ -37,7 +37,7 @@ streamlit run app.py
 
 ## 🌐 Live Demo
 
-> Coming soon on [Streamlit Cloud](https://share.streamlit.io)
+👉 [Click to try the app](https://capstoneproject-ameyborkar.streamlit.app/)
 
 ---
 
