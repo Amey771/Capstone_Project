@@ -7,3 +7,4 @@ ipykernel
 xgboost
 joblib
 streamlit
+shap
