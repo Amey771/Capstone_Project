@@ -2,6 +2,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+
+
 
 # Load assets
 model = joblib.load("xgb_employee_model.pkl")
@@ -192,3 +197,60 @@ if st.button("📊 Show SHAP Explanation"):
     # st.pyplot()
 
 
+
+## Chatbot
+# from openai import OpenAI
+# import streamlit as st
+
+# # Initialize OpenAI client with secure API key
+# client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+
+
+with st.expander("💬 Chat with the Attrition Assistant", expanded=False):
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    # 👇 Display all previous messages
+    for msg in st.session_state.chat_history:
+        avatar = "🧠" if msg["role"] == "assistant" else "🧑"
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.markdown(
+                f"<div style='font-size:15px; color:#e0e0e0'>{msg['content']}</div>",
+                unsafe_allow_html=True
+            )
+
+    # 👇 Chat input — outside the loop, always appears at the bottom
+    user_input = st.chat_input("Ask me anything about this attrition prediction...")
+
+    if user_input:
+        # Show user message
+        st.chat_message("user", avatar="🧑").markdown(
+            f"<div style='font-size:15px; color:#e0e0e0'>{user_input}</div>",
+            unsafe_allow_html=True
+        )
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        # Generate assistant response
+        with st.spinner("🤖 Thinking..."):
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content":
+                        "You are an intelligent, professional HR assistant focused on employee attrition. "
+                        "Your role is to clearly and calmly explain predictions made by a machine learning model, "
+                        "primarily using SHAP values and input features. "
+                        "Avoid off-topic conversation, and maintain a serious, helpful tone that guides HR decision-makers. "
+                        "If a question is unrelated to attrition prediction, respectfully decline to answer."
+                    },
+                    *st.session_state.chat_history
+                ],
+                temperature=0.3,
+            )
+            bot_reply = response.choices[0].message.content
+
+        # Show assistant message
+        st.chat_message("assistant", avatar="🧠").markdown(
+            f"<div style='font-size:15px; color:#e0e0e0'>{bot_reply}</div>",
+            unsafe_allow_html=True
+        )
+        st.session_state.chat_history.append({"role": "assistant", "content": bot_reply})
